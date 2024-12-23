@@ -1,0 +1,53 @@
+                               <?php
+// Check if the employee is on leave
+$empid = $_SESSION['eid'];
+$sql = "SELECT LeaveType, FromDate, ToDate, DATEDIFF(ToDate, CURRENT_DATE()) AS RemainingDays 
+        FROM tblleaves 
+        WHERE empid = :empid 
+          AND Status = 1 
+          AND (CURRENT_DATE() BETWEEN FromDate AND ToDate OR CURRENT_DATE() = FromDate)";
+
+$query = $dbh->prepare($sql);
+$query->bindParam(':empid', $empid, PDO::PARAM_STR);
+$query->execute();
+$leave = $query->fetch(PDO::FETCH_OBJ);
+
+if ($leave) {
+    $remainingDays = $leave->RemainingDays;
+    $leaveType = $leave->LeaveType;
+
+    // Display leave status with countdown
+    echo "
+    <div class='alert alert-info text-center'>
+        <i class='fa fa-calendar-check-o' style='font-size: 24px; color: #17a2b8;'></i>
+        <h5>You are currently on <strong>$leaveType</strong> leave.</h5>
+        <p>Remaining days: <span id='countdown'>$remainingDays</span></p>
+    </div>
+    ";
+} else {
+    echo "
+    <div class='alert alert-success text-center'>
+        <i class='fa fa-smile-o' style='font-size: 24px; color: #28a745;'></i>
+        <h5>You are not currently on leave.</h5>
+    </div>
+    ";
+}
+?>
+<script>
+// JavaScript Countdown Timer
+document.addEventListener('DOMContentLoaded', function () {
+    let countdownElement = document.getElementById('countdown');
+    if (countdownElement) {
+        let remainingDays = parseInt(countdownElement.textContent);
+        const interval = setInterval(() => {
+            remainingDays -= 1;
+            if (remainingDays < 0) {
+                clearInterval(interval);
+                countdownElement.textContent = "Leave period ended!";
+            } else {
+                countdownElement.textContent = remainingDays;
+            }
+        }, 86400000); // Decrease every 24 hours
+    }
+});
+</script>

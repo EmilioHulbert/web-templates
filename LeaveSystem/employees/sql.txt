@@ -1,0 +1,1 @@
+SELECT LeaveType, FromDate, ToDate, DATEDIFF(ToDate, CURRENT_DATE()) AS RemainingDays FROM tblleaves WHERE empid = 1 AND Status = 1 AND CURRENT_DATE() BETWEEN FromDate AND ToDate;
